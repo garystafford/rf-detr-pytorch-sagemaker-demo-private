@@ -1,0 +1,6 @@
+This photo was analyzed with an object detection model. Detected objects were outlined with a box and labeled. Describe the image, using the object detection information, but do not mention the boxes or labels.
+
+This image shows a neatly arranged flat lay of everyday household items on a light gray background. From left to right, there is a chef's knife with a black handle, a ripe yellow banana with a few brown spots, a pair of black-handled scissors, a black cell phone with its screen facing up, a silver fork, a white ceramic cup or mug lying on its side, and a clear glass bottle with a cork stopper. The items appear to be carefully positioned in a row, creating a clean, minimalist composition typical of product photography or organizational content.
+
+
+Describe the image.

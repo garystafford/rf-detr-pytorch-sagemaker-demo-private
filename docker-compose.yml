@@ -1,0 +1,28 @@
+services:
+  rf-detr-dev:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.dev
+    volumes:
+      - .:/app
+      - /app/.venv  # Exclude venv from mount
+    environment:
+      - PYTHONPATH=/app
+      - PYTHONUNBUFFERED=1
+    command: tail -f /dev/null  # Keep container running
+    
+  locust:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.dev
+    volumes:
+      - ./locust_scripts:/app/locust_scripts
+    ports:
+      - "8089:8089"
+    working_dir: /app/locust_scripts
+    command: locust -f locust_rfdetr.py --host=https://runtime.sagemaker.us-east-1.amazonaws.com
+    environment:
+      - SAGEMAKER_ENDPOINT_NAME=${SAGEMAKER_ENDPOINT_NAME}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-us-east-1}

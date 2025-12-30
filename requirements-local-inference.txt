@@ -1,0 +1,10 @@
+# Core packages for SageMaker deployment only
+pillow
+numpy
+rfdetr
+supervision
+
+# torch
+# torchvision  
+# opencv-python
+# inference
