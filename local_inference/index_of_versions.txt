@@ -1,0 +1,178 @@
+01. Object Segmentation Masks and Counting Entry/Exits
+=== Configuration ===
+Source video: chinatown-nyc-optimized.mp4
+Target video: chinatown-nyc-optimized-annotated.mp4
+Model variant: seg
+Confidence threshold: 0.5
+Model optimized: True
+---
+Show boxes: False
+Show labels: True
+Show masks: True
+Show traces: False
+Show object count: True
+Tracking enabled: True
+Pre-scaling enabled: True
+Frame skipping: every 2 frames
+Filtering to classes: ['car', 'truck', 'bus']
+Only moving objects (threshold: 10px)
+Line counting enabled: (0, 810) -> (1920, 810)
+=====================
+
+=== Results ===
+Total frames: 506
+Processing time: 33.10 seconds
+Average FPS: 15.29 frames/sec
+Average time per frame: 65.41 ms
+Total unique objects tracked: 20
+Line crossings - In: 2, Out: 6
+Output file: chinatown-nyc-optimized-annotated.mp4
+File size: 114,131,683 bytes
+=================
+
+
+02a. Basic Object Tracking and counting
+=== Configuration ===
+Source video: chinatown-nyc-optimized.mp4
+Target video: chinatown-nyc-optimized-annotated.mp4
+Model variant: large
+Confidence threshold: 0.5
+Model optimized: True
+---
+Show boxes: True
+Show labels: True
+Show masks: False
+Show traces: False
+Show object count: True
+Tracking enabled: True
+Pre-scaling enabled: True
+Frame skipping: every 2 frames
+=====================
+
+=== Results ===
+Total frames: 506
+Processing time: 18.16 seconds
+Average FPS: 27.86 frames/sec
+Average time per frame: 35.89 ms
+Total unique objects tracked: 55
+Output file: chinatown-nyc-optimized-annotated.mp4
+File size: 118,970,761 bytes
+=================
+
+02a. Basic Object Tracking and counting
+=== Configuration ===
+Source video: chinatown-nyc-optimized.mp4
+Target video: chinatown-nyc-optimized-annotated.mp4
+Model variant: small
+Confidence threshold: 0.5
+Model optimized: True
+---
+Show boxes: True
+Show labels: True
+Show masks: False
+Show traces: False
+Show object count: True
+Tracking enabled: True
+Pre-scaling enabled: True
+Frame skipping: every 2 frames
+=====================
+
+=== Results ===
+Total frames: 506
+Processing time: 15.71 seconds
+Average FPS: 32.22 frames/sec
+Average time per frame: 31.04 ms
+Total unique objects tracked: 59
+Output file: chinatown-nyc-optimized-annotated.mp4
+File size: 118,475,605 bytes
+=================
+
+
+03. Only Tracking Moving Vehicles
+=== Configuration ===
+Source video: chinatown-nyc-optimized.mp4
+Target video: chinatown-nyc-optimized-annotated.mp4
+Model variant: large
+Confidence threshold: 0.5
+Model optimized: True
+---
+Show boxes: True
+Show labels: True
+Show masks: False
+Show traces: False
+Show object count: True
+Tracking enabled: True
+Pre-scaling enabled: True
+Frame skipping: every 2 frames
+Filtering to classes: ['car', 'truck', 'bus']
+Only moving objects (threshold: 10px)
+=====================
+
+=== Results ===
+Total frames: 506
+Processing time: 15.46 seconds
+Average FPS: 32.73 frames/sec
+Average time per frame: 30.56 ms
+Total unique objects tracked: 27
+Output file: chinatown-nyc-optimized-annotated.mp4
+File size: 115,621,390 bytes
+=================
+
+
+04. Lower Threshold (same as #2a)
+=== Configuration ===
+Source video: chinatown-nyc-optimized.mp4
+Target video: chinatown-nyc-optimized-annotated.mp4
+Model variant: large
+Confidence threshold: 0.25
+Model optimized: True
+---
+Show boxes: True
+Show labels: True
+Show masks: False
+Show traces: False
+Show object count: True
+Tracking enabled: True
+Pre-scaling enabled: True
+Frame skipping: every 2 frames
+=====================
+
+=== Results ===
+Total frames: 506
+Processing time: 25.99 seconds
+Average FPS: 19.47 frames/sec
+Average time per frame: 51.36 ms
+Total unique objects tracked: 132
+Output file: chinatown-nyc-optimized-annotated.mp4
+File size: 126,249,797 bytes
+=================
+
+05. Object Segmentation Masks and Tracking Moving Vehicles with Trails
+=== Configuration ===
+Source video: chinatown-nyc-optimized.mp4
+Target video: chinatown-nyc-optimized-annotated.mp4
+Model variant: seg
+Confidence threshold: 0.5
+Model optimized: True
+---
+Show boxes: False
+Show labels: True
+Show masks: True
+Show traces: True
+Show object count: True
+Tracking enabled: True
+Pre-scaling enabled: True
+Frame skipping: every 2 frames
+Filtering to classes: ['car', 'truck', 'bus']
+Only moving objects (threshold: 10px)
+=====================
+
+=== Results ===
+Total frames: 506
+Processing time: 34.08 seconds
+Average FPS: 14.85 frames/sec
+Average time per frame: 67.36 ms
+Total unique objects tracked: 20
+Output file: chinatown-nyc-optimized-annotated.mp4
+File size: 114,075,366 bytes
+=================

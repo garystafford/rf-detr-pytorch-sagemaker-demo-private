@@ -5,10 +5,3 @@ boto3
 pillow
 numpy
 rfdetr
-
-# Optional: For local inference and model testing
-# torch
-# torchvision  
-# supervision
-# opencv-python
-# inference

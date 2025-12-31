@@ -1,0 +1,5 @@
+pillow
+numpy
+rfdetr
+supervision
+opencv-python

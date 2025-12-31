@@ -3,6 +3,7 @@
 # Author: Gary Stafford
 # Date: December 2025
 
+import warnings
 import numpy as np
 import supervision as sv
 from PIL import Image
@@ -14,7 +15,11 @@ from rfdetr.util.coco_classes import COCO_CLASSES
 model = RFDETRSegPreview(pretrain_weights="rf-detr-seg-preview.pt")
 
 # Optionally optimize for latency
-model.optimize_for_inference(compile=False)
+# Suppress TracerWarnings during compilation
+with warnings.catch_warnings():
+    warnings.filterwarnings('ignore', message='.*Converting a tensor to a Python.*')
+    warnings.filterwarnings('ignore', message='.*Iterating over a tensor.*')
+    model.optimize_for_inference(compile=True)
 
 # 2. Load image (RGB)
 image = Image.open("sample_image.png").convert("RGB")
@@ -120,3 +125,4 @@ annotated_05 = label_annotator.annotate(
     labels=labels,  # overrides default labeling
 )
 annotated_05.save("sample_image_annotated_05.jpg")
+print("Annotated images saved.")

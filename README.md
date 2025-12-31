@@ -108,6 +108,40 @@ make install-dev
 pre-commit install
 ```
 
+#### Mac
+
+```bash
+brew install python@3.12
+
+python3.12 -m pip install virtualenv --break-system-packages -Uq
+python3.12 -m venv .venv
+source .venv/bin/activate
+
+python3.12 -m pip install pip -Uq
+
+python3.12 -m pip install -r requirements.txt -Uq
+```
+
+#### Windows
+
+```cmd
+py -3.12 -m venv .venv
+.\.venv\Scripts\activate
+# or posh
+.\.venv\Scripts\Activate.ps1
+
+python -m pip install pip -Uq
+
+cd local_inference/
+python -m pip install -r requirements-local-inference.txt -Uq
+python -m pip install --extra-index-url https://download.pytorch.org/whl/cu128 torch torchcodec torchaudio xformers -Uq
+
+ffmpeg -i sample_video_traffic_annotated.mp4 -i sample_video_traffic.mp4 -c:v copy -c:a aac -map 0:v:0 -map 1:a:0 temp_output.mp4; if ($?) { Move-Item -Force temp_output.mp4 sample_video_traffic_annotated.mp4 }
+
+ffmpeg -i chinatown-nyc-optimized-annotated.mp4 -i chinatown-nyc-optimized.mp4 -c:v copy -c:a aac -map 0:v:0 -map 1:a:0 temp_output.mp4; if ($?) { Move-Item -Force temp_output.mp4 chinatown-nyc-optimized-annotated-with-audio.mp4 }
+
+```
+
 ### Option 3: Docker Development
 
 ```bash
