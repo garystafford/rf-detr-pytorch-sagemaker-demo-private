@@ -176,3 +176,32 @@ Total unique objects tracked: 20
 Output file: chinatown-nyc-optimized-annotated.mp4
 File size: 114,075,366 bytes
 =================
+
+
+02c. Basic Object Tracking and counting
+=== Configuration ===
+Source video: chinatown-nyc-optimized.mp4
+Target video: chinatown-nyc-optimized-annotated.mp4
+Model variant: nano
+Confidence threshold: 0.5
+Model optimized: True
+---
+Show boxes: True
+Show labels: True
+Show masks: False
+Show traces: False
+Show object count: True
+Tracking enabled: True
+Pre-scaling enabled: True
+Frame skipping: every 2 frames
+=====================
+
+=== Results ===
+Total frames: 506
+Processing time: 13.85 seconds
+Average FPS: 36.53 frames/sec
+Average time per frame: 27.38 ms
+Total unique objects tracked: 47
+Output file: chinatown-nyc-optimized-annotated.mp4
+File size: 117,487,947 bytes
+=================

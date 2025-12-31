@@ -36,15 +36,15 @@ print("==========================\n")
 # ========= CONFIG =========
 SOURCE_VIDEO_PATH = "chinatown-nyc-optimized.mp4"  # <-- set your input video
 TARGET_VIDEO_PATH = "chinatown-nyc-optimized-annotated.mp4"  # <-- set your output video
-MODEL_VARIANT = "seg"  # Options: "nano", "small", "medium", "base", "large", "seg"
+MODEL_VARIANT = "nano"  # Options: "nano", "small", "medium", "base", "large", "seg"
 THRESHOLD = 0.50  # confidence threshold for displaying boxes
 OPTIMIZE_MODEL = True  # Optimize model for inference (faster, may not work with seg)
 
 # Annotation toggles
-SHOW_BOXES = False  # Draw bounding boxes around detections
+SHOW_BOXES = True  # Draw bounding boxes around detections
 SHOW_LABELS = True  # Draw labels (class name, confidence, tracker ID)
-SHOW_MASKS = True  # Draw segmentation masks (only works with MODEL_VARIANT="seg")
-SHOW_TRACES = True  # Draw object movement trails (requires ENABLE_TRACKING)
+SHOW_MASKS = False  # Draw segmentation masks (only works with MODEL_VARIANT="seg")
+SHOW_TRACES = False  # Draw object movement trails (requires ENABLE_TRACKING)
 SHOW_OBJECT_COUNT = True  # Display object count overlay
 
 # Tracking options
@@ -52,10 +52,10 @@ ENABLE_TRACKING = True  # Enable object tracking across frames
 
 # Filter to specific classes (empty list = track all)
 # Examples: ["person"], ["car", "truck", "bus"], ["person", "bicycle"]
-TRACK_CLASSES = ["car", "truck", "bus"]  # <-- set classes to track, or [] for all
+TRACK_CLASSES = []  # <-- set classes to track, or [] for all
 
 # Only show moving objects (requires ENABLE_TRACKING=True)
-ONLY_MOVING = True  # <-- set True to filter out stationary objects
+ONLY_MOVING = False  # <-- set True to filter out stationary objects
 MOTION_THRESHOLD = 10  # pixels - minimum movement to be considered "moving"
 
 # Pre-scale frames to model resolution (may improve performance)
