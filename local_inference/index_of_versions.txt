@@ -3,7 +3,7 @@
 Source video: chinatown-nyc-optimized.mp4
 Target video: chinatown-nyc-optimized-annotated.mp4
 Model variant: seg
-Confidence threshold: 0.5
+Confidence threshold: 0.4
 Model optimized: True
 ---
 Show boxes: False
@@ -59,11 +59,37 @@ Output file: chinatown-nyc-optimized-annotated.mp4
 File size: 118,970,761 bytes
 =================
 
-02a. Basic Object Tracking and counting
+02b. Basic Object Tracking and counting
+=== Configuration ===
+Model variant: small
+Confidence threshold: 0.5
+Model optimized: True
+---
+Show boxes: True
+Show labels: True
+Show masks: False
+Show traces: False
+Show object count: True
+Tracking enabled: True
+Pre-scaling enabled: True
+Frame skipping: every 2 frames
+
+=== Results ===
+Total frames: 506
+Processing time: 15.71 seconds
+Average FPS: 32.22 frames/sec
+Average time per frame: 31.04 ms
+Total unique objects tracked: 59
+Output file: chinatown-nyc-optimized-annotated.mp4
+File size: 118,475,605 bytes
+=================
+
+
+02c. Basic Object Tracking and counting
 === Configuration ===
 Source video: chinatown-nyc-optimized.mp4
 Target video: chinatown-nyc-optimized-annotated.mp4
-Model variant: small
+Model variant: nano
 Confidence threshold: 0.5
 Model optimized: True
 ---
@@ -79,12 +105,12 @@ Frame skipping: every 2 frames
 
 === Results ===
 Total frames: 506
-Processing time: 15.71 seconds
-Average FPS: 32.22 frames/sec
-Average time per frame: 31.04 ms
-Total unique objects tracked: 59
+Processing time: 13.85 seconds
+Average FPS: 36.53 frames/sec
+Average time per frame: 27.38 ms
+Total unique objects tracked: 47
 Output file: chinatown-nyc-optimized-annotated.mp4
-File size: 118,475,605 bytes
+File size: 117,487,947 bytes
 =================
 
 
@@ -93,7 +119,7 @@ File size: 118,475,605 bytes
 Source video: chinatown-nyc-optimized.mp4
 Target video: chinatown-nyc-optimized-annotated.mp4
 Model variant: large
-Confidence threshold: 0.5
+Confidence threshold: 0.4
 Model optimized: True
 ---
 Show boxes: True
@@ -152,7 +178,7 @@ File size: 126,249,797 bytes
 Source video: chinatown-nyc-optimized.mp4
 Target video: chinatown-nyc-optimized-annotated.mp4
 Model variant: seg
-Confidence threshold: 0.5
+Confidence threshold: 0.40
 Model optimized: True
 ---
 Show boxes: False
@@ -177,31 +203,61 @@ Output file: chinatown-nyc-optimized-annotated.mp4
 File size: 114,075,366 bytes
 =================
 
-
-02c. Basic Object Tracking and counting
+06. Track People
 === Configuration ===
-Source video: chinatown-nyc-optimized.mp4
-Target video: chinatown-nyc-optimized-annotated.mp4
-Model variant: nano
-Confidence threshold: 0.5
+Source video: chinatown-nyc-optimized-v2.mp4
+Target video: chinatown-nyc-optimized-annotated-v2.mp4
+Model variant: seg
+Confidence threshold: 0.3
 Model optimized: True
 ---
-Show boxes: True
+Show boxes: False
 Show labels: True
-Show masks: False
+Show masks: True
 Show traces: False
 Show object count: True
 Tracking enabled: True
 Pre-scaling enabled: True
 Frame skipping: every 2 frames
+Filtering to classes: ['person', 'bicycle']
 =====================
 
 === Results ===
 Total frames: 506
-Processing time: 13.85 seconds
-Average FPS: 36.53 frames/sec
-Average time per frame: 27.38 ms
-Total unique objects tracked: 47
-Output file: chinatown-nyc-optimized-annotated.mp4
-File size: 117,487,947 bytes
+Processing time: 51.91 seconds
+Average FPS: 9.75 frames/sec
+Average time per frame: 102.59 ms
+Total unique objects tracked: 51
+Output file: chinatown-nyc-optimized-annotated-v2.mp4
+File size: 75,915,304 bytes
 =================
+
+
+07. Heatmap overlay
+=== Configuration ===
+Source video: chinatown-nyc-optimized-v2.mp4
+Target video: chinatown-nyc-optimized-annotated-v2.mp4
+Model variant: large
+Confidence threshold: 0.3
+Model optimized: True
+---
+Show boxes: False
+Show labels: False
+Show masks: False
+Show traces: False
+Show object count: False
+Tracking enabled: True
+Pre-scaling enabled: True
+Frame skipping: every 2 frames
+Only moving objects (threshold: 10px)
+Heatmap overlay enabled (alpha: 0.8)
+=====================
+
+=== Results ===
+Total frames: 506
+Processing time: 62.20 seconds
+Average FPS: 8.14 frames/sec
+Average time per frame: 122.92 ms
+Total unique objects tracked: 97
+Output file: chinatown-nyc-optimized-annotated-v2.mp4
+File size: 14,363,616 bytes

@@ -7,26 +7,35 @@
 import os
 import time
 import warnings
-from collections import Counter, defaultdict
+from collections import Counter
 
 # Suppress PyTorch meshgrid warning from rfdetr internals
 warnings.filterwarnings("ignore", message=".*torch.meshgrid.*")
-# Suppress optimization warning for seg model
+# Suppress optimization warning for segment model
 warnings.filterwarnings("ignore", message=".*Model is not optimized for inference.*")
 
-import torch
+import cv2
 import numpy as np
 import supervision as sv
-import cv2
+import torch
 
-from rfdetr import RFDETRBase, RFDETRLarge, RFDETRMedium, RFDETRNano, RFDETRSmall, RFDETRSegPreview
+from rfdetr import (
+    RFDETRBase,
+    RFDETRLarge,
+    RFDETRMedium,
+    RFDETRNano,
+    RFDETRSegPreview,
+    RFDETRSmall,
+)
 from rfdetr.util.coco_classes import COCO_CLASSES
 
 # Display device information
 print("=== Device Information ===")
 if torch.cuda.is_available():
     print(f"Using device: CUDA - {torch.cuda.get_device_name(0)}")
-    print(f"GPU Memory: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.2f} GB")
+    print(
+        f"GPU Memory: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.2f} GB"
+    )
 elif torch.backends.mps.is_available():
     print("Using device: MPS (Apple Silicon)")
 else:
@@ -34,16 +43,22 @@ else:
 print("==========================\n")
 
 # ========= CONFIG =========
-SOURCE_VIDEO_PATH = "chinatown-nyc-optimized.mp4"  # <-- set your input video
-TARGET_VIDEO_PATH = "chinatown-nyc-optimized-annotated.mp4"  # <-- set your output video
-MODEL_VARIANT = "nano"  # Options: "nano", "small", "medium", "base", "large", "seg"
-THRESHOLD = 0.50  # confidence threshold for displaying boxes
-OPTIMIZE_MODEL = True  # Optimize model for inference (faster, may not work with seg)
+SOURCE_VIDEO_PATH = "chinatown-nyc-optimized-v2.mp4"  # <-- set your input video
+TARGET_VIDEO_PATH = (
+    "chinatown-nyc-optimized-annotated-v2.mp4"  # <-- set your output video
+)
+MODEL_VARIANT = (
+    "large"  # Options: "nano", "small", "medium", "base", "large", "segment"
+)
+OPTIMIZE_MODEL = (
+    True  # Optimize model for inference (faster, may not work with segment)
+)
+THRESHOLD = 0.10  # confidence threshold for displaying boxes (0.0 to 1.0)
 
 # Annotation toggles
 SHOW_BOXES = True  # Draw bounding boxes around detections
 SHOW_LABELS = True  # Draw labels (class name, confidence, tracker ID)
-SHOW_MASKS = False  # Draw segmentation masks (only works with MODEL_VARIANT="seg")
+SHOW_MASKS = False  # Draw segmentation masks (only works with MODEL_VARIANT="segment")
 SHOW_TRACES = False  # Draw object movement trails (requires ENABLE_TRACKING)
 SHOW_OBJECT_COUNT = True  # Display object count overlay
 
@@ -52,10 +67,15 @@ ENABLE_TRACKING = True  # Enable object tracking across frames
 
 # Filter to specific classes (empty list = track all)
 # Examples: ["person"], ["car", "truck", "bus"], ["person", "bicycle"]
-TRACK_CLASSES = []  # <-- set classes to track, or [] for all
+TRACK_CLASSES = [
+    "car",
+    "truck",
+    "bus",
+    "motorcycle",
+]  # <-- set classes to track, or [] for all
 
 # Only show moving objects (requires ENABLE_TRACKING=True)
-ONLY_MOVING = False  # <-- set True to filter out stationary objects
+ONLY_MOVING = True  # <-- set True to filter out stationary objects
 MOTION_THRESHOLD = 10  # pixels - minimum movement to be considered "moving"
 
 # Pre-scale frames to model resolution (may improve performance)
@@ -69,19 +89,35 @@ FRAME_SKIP_COUNT = 2  # Process every Nth frame (2 = every other frame)
 COUNT_LINE = False  # <-- set True to enable line counting
 # Line coordinates as percentage of frame (0.0 to 1.0)
 # Default: horizontal line across middle of frame
-COUNT_LINE_START = (0.0, 0.75)  # (x%, y%) - left point
-COUNT_LINE_END = (1.0, 0.75)  # (x%, y%) - right point
+COUNT_LINE_START = (0.0, 0.66)  # (x%, y%) - left point
+COUNT_LINE_END = (1.0, 0.66)  # (x%, y%) - right point
 COUNT_LINE_COLOR = (0, 255, 0)  # Green line
+COUNT_LINE_IN_COLOR = (0, 255, 0)  # Green text for "In" count
+COUNT_LINE_OUT_COLOR = (0, 255, 0)  # Red text for "Out" count
 
 # Heatmap overlay - show where objects appear most frequently
 SHOW_HEATMAP = False  # <-- set True to show heatmap overlay
-HEATMAP_ALPHA = 0.4  # Transparency of heatmap (0.0 to 1.0)
+HEATMAP_ALPHA = 0.8  # Transparency of heatmap (0.0 to 1.0)
+
+# Region of Interest (ROI) - Only detect objects within this polygon
+ENABLE_ROI = False  # <-- set True to enable ROI filtering
+# Define polygon vertices as percentages of frame (0.0 to 1.0)
+# Format: [(x1%, y1%), (x2%, y2%), (x3%, y3%), ...]
+# Example trapezoid following road perspective:
+ROI_POLYGON = [
+    (0.1, 0.4),   # Top-left
+    (0.9, 0.4),   # Top-right
+    (1.0, 1.0),   # Bottom-right
+    (0.0, 1.0),   # Bottom-left
+]
+SHOW_ROI_BOUNDARY = True  # Draw the ROI polygon on output video
+ROI_BOUNDARY_COLOR = (255, 0, 255)  # Magenta boundary
 # ==========================
 
 # Validation
 assert os.path.exists(SOURCE_VIDEO_PATH), f"Source video not found: {SOURCE_VIDEO_PATH}"
-if SHOW_MASKS and MODEL_VARIANT != "seg":
-    raise ValueError("SHOW_MASKS=True requires MODEL_VARIANT='seg'")
+if SHOW_MASKS and MODEL_VARIANT != "segment":
+    raise ValueError("SHOW_MASKS=True requires MODEL_VARIANT='segment'")
 
 # Get video info for line counting coordinates
 video_info = sv.VideoInfo.from_video_path(SOURCE_VIDEO_PATH)
@@ -104,6 +140,16 @@ if COUNT_LINE:
     )
     print(f"Count line: {line_start} -> {line_end}")
 
+# Convert ROI polygon from percentages to pixels
+if ENABLE_ROI:
+    roi_polygon = np.array([
+        [int(x * frame_width), int(y * frame_height)]
+        for x, y in ROI_POLYGON
+    ], dtype=np.int32)
+    print(f"ROI polygon: {len(ROI_POLYGON)} vertices")
+else:
+    roi_polygon = None
+
 print("Loading RF-DETR model...")
 model_classes = {
     "nano": RFDETRNano,
@@ -111,7 +157,7 @@ model_classes = {
     "medium": RFDETRMedium,
     "base": RFDETRBase,
     "large": RFDETRLarge,
-    "seg": RFDETRSegPreview,
+    "segment": RFDETRSegPreview,
 }
 if MODEL_VARIANT not in model_classes:
     raise ValueError(
@@ -119,9 +165,9 @@ if MODEL_VARIANT not in model_classes:
     )
 model = model_classes[MODEL_VARIANT]()
 
-# Seg model may not have resolution attribute in same place
-if MODEL_VARIANT == "seg":
-    model_resolution = 560  # Default for seg preview
+# segment model may not have resolution attribute in same place
+if MODEL_VARIANT == "segment":
+    model_resolution = 560  # Default for segment preview
     print("Using model: RF-DETR Segmentation Preview")
 else:
     print(
@@ -168,6 +214,39 @@ mask_annotator = sv.MaskAnnotator()
 trace_annotator = (
     sv.TraceAnnotator(thickness=2, trace_length=40) if ENABLE_TRACKING else None
 )
+
+
+def point_in_polygon(point, polygon):
+    """Check if a point is inside a polygon using ray casting algorithm.
+    Args:
+        point: (x, y) coordinates
+        polygon: numpy array of shape (N, 2) with polygon vertices
+    Returns:
+        bool: True if point is inside polygon
+    """
+    x, y = point
+    n = len(polygon)
+    inside = False
+
+    p1x, p1y = polygon[0]
+    for i in range(1, n + 1):
+        p2x, p2y = polygon[i % n]
+        if y > min(p1y, p2y):
+            if y <= max(p1y, p2y):
+                if x <= max(p1x, p2x):
+                    if p1y != p2y:
+                        xinters = (y - p1y) * (p2x - p1x) / (p2y - p1y) + p1x
+                    if p1x == p2x or x <= xinters:
+                        inside = not inside
+        p1x, p1y = p2x, p2y
+
+    return inside
+
+
+def draw_roi_boundary(frame, polygon, color):
+    """Draw the ROI polygon boundary on the frame."""
+    cv2.polylines(frame, [polygon], isClosed=True, color=color, thickness=3)
+    return frame
 
 
 def point_side_of_line(point, line_start, line_end):
@@ -246,27 +325,27 @@ def draw_count_line(frame):
     """Draw the counting line on the frame."""
     cv2.line(frame, line_start, line_end, COUNT_LINE_COLOR, 3)
 
-    # Draw counts on the left side of the line
-    left_x = min(line_start[0], line_end[0]) + 10
-    left_y = (line_start[1] + line_end[1]) // 2
+    # Draw counts on the right side of the line
+    right_x = max(line_start[0], line_end[0]) - 125
+    right_y = (line_start[1] + line_end[1]) // 2
 
     cv2.putText(
         frame,
         f"In: {line_cross_counts['in']}",
-        (left_x, left_y - 20),
+        (right_x, right_y - 20),
         cv2.FONT_HERSHEY_SIMPLEX,
-        0.8,
-        (0, 255, 0),
+        0.9,
+        COUNT_LINE_IN_COLOR,
         2,
         cv2.LINE_AA,
     )
     cv2.putText(
         frame,
         f"Out: {line_cross_counts['out']}",
-        (left_x, left_y + 30),
+        (right_x, right_y + 30),
         cv2.FONT_HERSHEY_SIMPLEX,
-        0.8,
-        (0, 0, 255),
+        0.9,
+        COUNT_LINE_OUT_COLOR,
         2,
         cv2.LINE_AA,
     )
@@ -335,9 +414,9 @@ def callback(frame, index: int):
         rgb_frame = frame[:, :, ::-1].copy()
         orig_h, orig_w = rgb_frame.shape[:2]
 
-        # Pre-scale frame to model resolution if enabled (skip for seg model)
+        # Pre-scale frame to model resolution if enabled (skip for segment model)
         scale = 1.0
-        if PRE_SCALE and MODEL_VARIANT != "seg":
+        if PRE_SCALE and MODEL_VARIANT != "segment":
             scale = model_resolution / max(orig_h, orig_w)
             if scale < 1.0:
                 new_w = int(orig_w * scale)
@@ -350,7 +429,7 @@ def callback(frame, index: int):
         detections = model.predict(rgb_frame, threshold=THRESHOLD)
 
         # Scale bounding boxes back to original frame size if pre-scaled
-        if PRE_SCALE and MODEL_VARIANT != "seg" and scale < 1.0:
+        if PRE_SCALE and MODEL_VARIANT != "segment" and scale < 1.0:
             detections.xyxy = detections.xyxy / scale
 
         # Filter to specific classes if configured
@@ -361,6 +440,21 @@ def callback(frame, index: int):
                 if COCO_CLASSES[cid] in TRACK_CLASSES
             ]
             detections = detections[class_ids_to_keep]
+
+        # Filter to ROI polygon if configured
+        if ENABLE_ROI and roi_polygon is not None and len(detections) > 0:
+            roi_indices = []
+            for i, xyxy in enumerate(detections.xyxy):
+                # Check if detection center is inside ROI polygon
+                center_x = (xyxy[0] + xyxy[2]) / 2
+                center_y = (xyxy[1] + xyxy[3]) / 2
+                if point_in_polygon((center_x, center_y), roi_polygon):
+                    roi_indices.append(i)
+
+            if roi_indices:
+                detections = detections[roi_indices]
+            else:
+                detections = detections[[]]  # Empty detections
 
         # Apply tracking
         if ENABLE_TRACKING and tracker is not None:
@@ -444,6 +538,10 @@ def callback(frame, index: int):
     if SHOW_HEATMAP:
         annotated_frame = draw_heatmap_overlay(annotated_frame)
 
+    # Draw ROI boundary
+    if ENABLE_ROI and SHOW_ROI_BOUNDARY and roi_polygon is not None:
+        annotated_frame = draw_roi_boundary(annotated_frame, roi_polygon, ROI_BOUNDARY_COLOR)
+
     # Draw segmentation masks (underneath boxes/labels)
     if SHOW_MASKS and detections.mask is not None:
         annotated_frame = mask_annotator.annotate(annotated_frame, detections)
@@ -514,6 +612,10 @@ if COUNT_LINE:
     print(f"Line counting enabled: {line_start} -> {line_end}")
 if SHOW_HEATMAP:
     print(f"Heatmap overlay enabled (alpha: {HEATMAP_ALPHA})")
+if ENABLE_ROI:
+    print(f"ROI filtering enabled ({len(ROI_POLYGON)} vertices)")
+    if SHOW_ROI_BOUNDARY:
+        print(f"ROI boundary visible on output")
 print("=====================\n")
 
 print("Starting video processing...")

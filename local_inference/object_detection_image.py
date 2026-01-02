@@ -4,6 +4,7 @@
 # Date: December 2025
 
 import warnings
+
 import numpy as np
 import supervision as sv
 from PIL import Image
@@ -17,8 +18,8 @@ model = RFDETRSegPreview(pretrain_weights="rf-detr-seg-preview.pt")
 # Optionally optimize for latency
 # Suppress TracerWarnings during compilation
 with warnings.catch_warnings():
-    warnings.filterwarnings('ignore', message='.*Converting a tensor to a Python.*')
-    warnings.filterwarnings('ignore', message='.*Iterating over a tensor.*')
+    warnings.filterwarnings("ignore", message=".*Converting a tensor to a Python.*")
+    warnings.filterwarnings("ignore", message=".*Iterating over a tensor.*")
     model.optimize_for_inference(compile=True)
 
 # 2. Load image (RGB)

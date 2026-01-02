@@ -140,6 +140,51 @@ ffmpeg -i sample_video_traffic_annotated.mp4 -i sample_video_traffic.mp4 -c:v co
 
 ffmpeg -i chinatown-nyc-optimized-annotated.mp4 -i chinatown-nyc-optimized.mp4 -c:v copy -c:a aac -map 0:v:0 -map 1:a:0 temp_output.mp4; if ($?) { Move-Item -Force temp_output.mp4 chinatown-nyc-optimized-annotated-with-audio.mp4 }
 
+
+ffmpeg -i "chinatown-nyc.mov" `
+  -vf "fps=30,`
+hqdn3d=1.5:1.5:6:6,`
+unsharp=5:5:0.7:5:5:0.0,`
+eq=brightness=0.02:contrast=1.1,`
+format=gray" `
+  -c:v libx264 -crf 18 -preset slow -an `
+  "chinatown-nyc-optimized-v2.mp4"
+
+ffmpeg -i chinatown-nyc-optimized-v2.mp4 `
+  -i chinatown-nyc-optimized.mp4 -c:v copy -c:a aac -map 0:v:0 -map 1:a:0 temp_output.mp4; `
+  if ($?) { Move-Item -Force temp_output.mp4 chinatown-nyc-optimized-v2-with-audio.mp4 }
+
+ffmpeg -i chinatown-nyc-optimized-annotated-v2_01.mp4 `
+  -i chinatown-nyc-optimized.mp4 -c:v copy -c:a aac -map 0:v:0 -map 1:a:0 temp_output.mp4; `
+  if ($?) { Move-Item -Force temp_output.mp4 chinatown-nyc-optimized-annotated-v2_01-with-audio.mp4 }
+
+ffmpeg -i chinatown-nyc-optimized-annotated-v2_02a.mp4 `
+  -i chinatown-nyc-optimized.mp4 -c:v copy -c:a aac -map 0:v:0 -map 1:a:0 temp_output.mp4; `
+  if ($?) { Move-Item -Force temp_output.mp4 chinatown-nyc-optimized-annotated-v2_02a-with-audio.mp4 }
+
+ffmpeg -i chinatown-nyc-optimized-annotated-v2_02c.mp4 `
+  -i chinatown-nyc-optimized.mp4 -c:v copy -c:a aac -map 0:v:0 -map 1:a:0 temp_output.mp4; `
+  if ($?) { Move-Item -Force temp_output.mp4 chinatown-nyc-optimized-annotated-v2_02c-with-audio.mp4 }
+
+ffmpeg -i chinatown-nyc-optimized-annotated-v2_03.mp4 `
+  -i chinatown-nyc-optimized.mp4 -c:v copy -c:a aac -map 0:v:0 -map 1:a:0 temp_output.mp4; `
+  if ($?) { Move-Item -Force temp_output.mp4 chinatown-nyc-optimized-annotated-v2_03-with-audio.mp4 }
+
+ffmpeg -i chinatown-nyc-optimized-annotated-v2_04.mp4 `
+  -i chinatown-nyc-optimized.mp4 -c:v copy -c:a aac -map 0:v:0 -map 1:a:0 temp_output.mp4; `
+  if ($?) { Move-Item -Force temp_output.mp4 chinatown-nyc-optimized-annotated-v2_04-with-audio.mp4 }
+
+ffmpeg -i chinatown-nyc-optimized-annotated-v2_05.mp4 `
+  -i chinatown-nyc-optimized.mp4 -c:v copy -c:a aac -map 0:v:0 -map 1:a:0 temp_output.mp4; `
+  if ($?) { Move-Item -Force temp_output.mp4 chinatown-nyc-optimized-annotated-v2_05-with-audio.mp4 }
+
+ffmpeg -i chinatown-nyc-optimized-annotated-v2_06.mp4 `
+  -i chinatown-nyc-optimized.mp4 -c:v copy -c:a aac -map 0:v:0 -map 1:a:0 temp_output.mp4; `
+  if ($?) { Move-Item -Force temp_output.mp4 chinatown-nyc-optimized-annotated-v2_06-with-audio.mp4 }
+
+ffmpeg -i chinatown-nyc-optimized-annotated-v2_07.mp4 `
+  -i chinatown-nyc-optimized.mp4 -c:v copy -c:a aac -map 0:v:0 -map 1:a:0 temp_output.mp4; `
+  if ($?) { Move-Item -Force temp_output.mp4 chinatown-nyc-optimized-annotated-v2_07-with-audio.mp4 }
 ```
 
 ### Option 3: Docker Development

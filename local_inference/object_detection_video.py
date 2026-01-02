@@ -11,9 +11,9 @@ from collections import Counter
 # Suppress PyTorch meshgrid warning from rfdetr internals
 warnings.filterwarnings("ignore", message=".*torch.meshgrid.*")
 
+import cv2
 import numpy as np
 import supervision as sv
-import cv2
 
 from rfdetr import RFDETRBase, RFDETRLarge, RFDETRMedium, RFDETRNano, RFDETRSmall
 from rfdetr.util.coco_classes import COCO_CLASSES
