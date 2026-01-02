@@ -1,0 +1,5 @@
+This brief video introduces Roboflow Detection Transformer, robo-flow’s fast transformer-based model designed for real-time object detection in images and video streams. It walks through several common overlay styles, showing how different markers and annotations highlight detected objects and make model predictions easier to interpret at a glance.
+
+This brief video introduces Roboflow Detection Transformer, robo-flow’s fast transformer-based model designed for real-time object detection in images and video streams. It walks through several common overlay styles, showing how different markers and annotations highlight detected objects and make model predictions easier to interpret at a glance.
+
+The video walks through a range of annotation, tracking, filtering, and analytics techniques that highlight detected objects and make the model’s predictions easier to understand at a glance.

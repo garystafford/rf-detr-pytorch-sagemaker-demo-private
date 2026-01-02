@@ -53,7 +53,7 @@ MODEL_VARIANT = (
 OPTIMIZE_MODEL = (
     True  # Optimize model for inference (faster, may not work with segment)
 )
-THRESHOLD = 0.10  # confidence threshold for displaying boxes (0.0 to 1.0)
+THRESHOLD = 0.25  # confidence threshold for displaying boxes (0.0 to 1.0)
 
 # Annotation toggles
 SHOW_BOXES = True  # Draw bounding boxes around detections
@@ -67,15 +67,10 @@ ENABLE_TRACKING = True  # Enable object tracking across frames
 
 # Filter to specific classes (empty list = track all)
 # Examples: ["person"], ["car", "truck", "bus"], ["person", "bicycle"]
-TRACK_CLASSES = [
-    "car",
-    "truck",
-    "bus",
-    "motorcycle",
-]  # <-- set classes to track, or [] for all
+TRACK_CLASSES = []  # <-- set classes to track, or [] for all
 
 # Only show moving objects (requires ENABLE_TRACKING=True)
-ONLY_MOVING = True  # <-- set True to filter out stationary objects
+ONLY_MOVING = False  # <-- set True to filter out stationary objects
 MOTION_THRESHOLD = 10  # pixels - minimum movement to be considered "moving"
 
 # Pre-scale frames to model resolution (may improve performance)
@@ -105,13 +100,19 @@ ENABLE_ROI = False  # <-- set True to enable ROI filtering
 # Format: [(x1%, y1%), (x2%, y2%), (x3%, y3%), ...]
 # Example trapezoid following road perspective:
 ROI_POLYGON = [
-    (0.1, 0.4),   # Top-left
-    (0.9, 0.4),   # Top-right
-    (1.0, 1.0),   # Bottom-right
-    (0.0, 1.0),   # Bottom-left
+    (0.48, 0.40),  # Top-left
+    (0.55, 0.40),  # Top-right
+    (0.72, 0.95),  # Bottom-right
+    (0.23, 0.95),  # Bottom-left
 ]
 SHOW_ROI_BOUNDARY = True  # Draw the ROI polygon on output video
 ROI_BOUNDARY_COLOR = (255, 0, 255)  # Magenta boundary
+SHOW_ROI_MASK = True  # Apply effect to area outside ROI (helps visualize active zone)
+ROI_MASK_STYLE = "blur"  # Options: "blur", "darken", "desaturate"
+ROI_MASK_ALPHA = (
+    0.3  # Effect intensity (blur: ignored, darken: 0.0-1.0, desaturate: 0.0-1.0)
+)
+ROI_BLUR_KERNEL = 9  # Blur kernel size (must be odd number, larger = more blur)
 # ==========================
 
 # Validation
@@ -142,10 +143,10 @@ if COUNT_LINE:
 
 # Convert ROI polygon from percentages to pixels
 if ENABLE_ROI:
-    roi_polygon = np.array([
-        [int(x * frame_width), int(y * frame_height)]
-        for x, y in ROI_POLYGON
-    ], dtype=np.int32)
+    roi_polygon = np.array(
+        [[int(x * frame_width), int(y * frame_height)] for x, y in ROI_POLYGON],
+        dtype=np.int32,
+    )
     print(f"ROI polygon: {len(ROI_POLYGON)} vertices")
 else:
     roi_polygon = None
@@ -245,8 +246,48 @@ def point_in_polygon(point, polygon):
 
 def draw_roi_boundary(frame, polygon, color):
     """Draw the ROI polygon boundary on the frame."""
-    cv2.polylines(frame, [polygon], isClosed=True, color=color, thickness=3)
+    cv2.polylines(frame, [polygon], isClosed=True, color=color, thickness=2)
     return frame
+
+
+def draw_roi_mask(frame, polygon, style="blur", alpha=0.5, blur_kernel=25):
+    """Apply visual effect to area outside the ROI polygon.
+
+    Args:
+        frame: Input frame
+        polygon: ROI polygon vertices
+        style: Effect type - "blur", "darken", or "desaturate"
+        alpha: Effect intensity for darken/desaturate (0.0-1.0)
+        blur_kernel: Kernel size for blur (must be odd)
+    """
+    # Create a mask (white inside ROI, black outside)
+    mask = np.zeros(frame.shape[:2], dtype=np.uint8)
+    cv2.fillPoly(mask, [polygon], 255)
+
+    result = frame.copy()
+
+    if style == "blur":
+        # Blur entire frame
+        blurred = cv2.GaussianBlur(frame, (blur_kernel, blur_kernel), 0)
+        # Composite: inside ROI = original, outside ROI = blurred
+        result[mask == 0] = blurred[mask == 0]
+
+    elif style == "darken":
+        # Create darkened version by blending with black
+        darkened = cv2.addWeighted(frame, 1 - alpha, np.zeros_like(frame), alpha, 0)
+        # Composite: inside ROI = original, outside ROI = darkened
+        result[mask == 0] = darkened[mask == 0]
+
+    elif style == "desaturate":
+        # Convert to grayscale
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        gray_bgr = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
+        # Blend original with grayscale
+        desaturated = cv2.addWeighted(frame, 1 - alpha, gray_bgr, alpha, 0)
+        # Composite: inside ROI = original, outside ROI = desaturated
+        result[mask == 0] = desaturated[mask == 0]
+
+    return result
 
 
 def point_side_of_line(point, line_start, line_end):
@@ -538,9 +579,21 @@ def callback(frame, index: int):
     if SHOW_HEATMAP:
         annotated_frame = draw_heatmap_overlay(annotated_frame)
 
+    # Draw ROI mask (apply visual effect to area outside ROI)
+    if ENABLE_ROI and SHOW_ROI_MASK and roi_polygon is not None:
+        annotated_frame = draw_roi_mask(
+            annotated_frame,
+            roi_polygon,
+            ROI_MASK_STYLE,
+            ROI_MASK_ALPHA,
+            ROI_BLUR_KERNEL,
+        )
+
     # Draw ROI boundary
     if ENABLE_ROI and SHOW_ROI_BOUNDARY and roi_polygon is not None:
-        annotated_frame = draw_roi_boundary(annotated_frame, roi_polygon, ROI_BOUNDARY_COLOR)
+        annotated_frame = draw_roi_boundary(
+            annotated_frame, roi_polygon, ROI_BOUNDARY_COLOR
+        )
 
     # Draw segmentation masks (underneath boxes/labels)
     if SHOW_MASKS and detections.mask is not None:
@@ -616,6 +669,15 @@ if ENABLE_ROI:
     print(f"ROI filtering enabled ({len(ROI_POLYGON)} vertices)")
     if SHOW_ROI_BOUNDARY:
         print(f"ROI boundary visible on output")
+    if SHOW_ROI_MASK:
+        if ROI_MASK_STYLE == "blur":
+            print(
+                f"ROI mask enabled (style: {ROI_MASK_STYLE}, kernel: {ROI_BLUR_KERNEL})"
+            )
+        else:
+            print(
+                f"ROI mask enabled (style: {ROI_MASK_STYLE}, alpha: {ROI_MASK_ALPHA})"
+            )
 print("=====================\n")
 
 print("Starting video processing...")
