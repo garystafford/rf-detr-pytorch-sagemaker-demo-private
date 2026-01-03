@@ -150,6 +150,14 @@ format=gray" `
   -c:v libx264 -crf 18 -preset slow -an `
   "chinatown-nyc-optimized-v2.mp4"
 
+ffmpeg -i "sample_images\sample_video_traffic.mp4" `
+  -vf "fps=30,`
+hqdn3d=1.5:1.5:6:6,`
+eq=brightness=0.02:contrast=1.1,`
+format=gray" `
+  -c:v libx264 -crf 18 -preset fast -an `
+  "sample_images\sample_video_traffic_optimized.mp4"
+
 ffmpeg -i chinatown-nyc-optimized-v2.mp4 `
   -i chinatown-nyc-optimized.mp4 -c:v copy -c:a aac -map 0:v:0 -map 1:a:0 temp_output.mp4; `
   if ($?) { Move-Item -Force temp_output.mp4 chinatown-nyc-optimized-v2-with-audio.mp4 }
